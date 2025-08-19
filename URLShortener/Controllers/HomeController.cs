@@ -21,17 +21,19 @@ public class HomeController : Controller
 /// <param name="url">Оригинальный URL</param>
 /// <returns></returns>
     [HttpPost]
-    public IActionResult ShortenUrl(string url)
+    public IActionResult ShortenUrl(string originalUrl)
     {
         string shortKey;
         do
         {
             shortKey = GenerateShortKey(urlLength);
         } while (urlDictionary.ContainsKey(shortKey));
-        urlDictionary[shortKey] = url;
+        urlDictionary[shortKey] = originalUrl;
         string shortUrl = baseUrl + shortKey; // создаем короткий URL 
         
         ViewBag.ShortUrl = shortUrl;
+
+        Console.WriteLine(originalUrl);
         return View("Index");
     }
 
