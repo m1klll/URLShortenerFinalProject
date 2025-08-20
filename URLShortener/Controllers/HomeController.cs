@@ -6,10 +6,10 @@ namespace URLShortener.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly Dictionary<string, string> urlDictionary = new();
+    private static readonly Dictionary<string, string> urlDictionary = new();
     private static readonly Random random = new();
     private const int urlLength = 6;
-    private const string baseUrl = "http://localhost:5275/";
+    private const string baseUrl = "http://localhost:5025/";
     
     public IActionResult Index()
     {
@@ -24,19 +24,36 @@ public class HomeController : Controller
     public IActionResult ShortenUrl(string originalUrl)
     {
         string shortKey;
-        do
-        {
-            shortKey = GenerateShortKey(urlLength);
-        } while (urlDictionary.ContainsKey(shortKey));
-        urlDictionary[shortKey] = originalUrl;
-        string shortUrl = baseUrl + shortKey; // создаем короткий URL 
         
+        // Если оригинальная ссылка существует
+        if (urlDictionary.ContainsValue(originalUrl))
+        {
+            // Получаем ее
+            shortKey = urlDictionary.First(x => x.Value == originalUrl).Key;
+            
+        }
+        // Иначе генерируем новую
+        else
+        {
+            do
+            {
+                shortKey = GenerateShortKey(urlLength);
+            } while (urlDictionary.ContainsKey(shortKey));
+        
+            urlDictionary.Add(shortKey, originalUrl);
+        }
+        
+        string shortUrl = baseUrl + shortKey; // создаем короткий URL 
         ViewBag.ShortUrl = shortUrl;
-
-        Console.WriteLine(originalUrl);
+        
         return View("Index");
     }
 
+    /// <summary>
+    /// Генерация короткой ссылки
+    /// </summary>
+    /// <param name="length">длинна</param>
+    /// <returns></returns>
     private string GenerateShortKey(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -44,6 +61,18 @@ public class HomeController : Controller
         char[] charsarr = chars.ToCharArray();
 
         return new string(random.GetItems(charsarr, length));
+    }
+    
+    public IActionResult RedirectOnOriginalUrl(string id)
+    {
+        // Если ссылка существует
+        if (urlDictionary.TryGetValue(id, out string longUrl))
+        {
+            // Редирект
+            return Redirect(longUrl);
+        }
+        // Иначе 404
+        return NotFound("Ссылка не найдена.");
     }
     
 }
