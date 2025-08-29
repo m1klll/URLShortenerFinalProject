@@ -5,3 +5,4 @@ riderModule.iml
 /_ReSharper.Caches/
 /.idea
 URLShortener.sln.DotSettings.user
+URLShortener/urls.json
